@@ -4,10 +4,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-backend/static/*.jpg
-backend/static/*.png
-backend/static/*.gif
-backend/settings.py
+/backend/static/*.jpg
+/backend/static/*.png
+/backend/static/*.gif
+/backend/settings.py
 # C extensions
 *.so
 

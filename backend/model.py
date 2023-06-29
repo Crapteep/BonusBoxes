@@ -5,9 +5,9 @@ from datetime import datetime
 
 class User(BaseModel):
     name: str
-    box: str = Field(default="", alias="images")
-    mbox: str = Field(default="", alias="images")
-    gbox: str = Field(default="", alias="images")
+    box: str
+    mbox: str
+    gbox: str
 
 
 class Post(BaseModel):

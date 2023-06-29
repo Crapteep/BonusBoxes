@@ -5,9 +5,9 @@ from datetime import datetime
 
 class User(BaseModel):
     name: str
-    box: str
-    mbox: str
-    gbox: str
+    box: str | None = None
+    mbox: str | None = None
+    gbox: str | None = None
 
 
 class Post(BaseModel):

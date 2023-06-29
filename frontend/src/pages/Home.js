@@ -1,48 +1,43 @@
 import React from "react";
-import axios from 'axios'
-import {useEffect, useState} from 'react'
-import { Container } from 'react-bootstrap';
-import ListGroup from 'react-bootstrap/ListGroup';
 import Loading from "../components/Loading";
+import { Link } from "react-router-dom";
+import { FiUsers } from 'react-icons/fi';
+import usePostsData from '../hooks/usePostsData'
+
 
 const Home = () => {
 
-    const [postList, setPostList] = useState([{}])
-    const [isLoading, setIsLoading] = useState(true);
-
-    const fetchAllPosts = () => {
-        axios.get('http://localhost:8000/posts').then(res => {
-          setPostList(res.data)
-          setIsLoading(false);
-        })
-      };
-    
-      useEffect(() => {
-        fetchAllPosts()
-      }, []);
-
+    const { isLoading, data } = usePostsData()
 
     return (
-      <Container className="col-lg-8" fluid>
 
-        <ListGroup numbered className="mt-3 font-size-lg" >
-            {isLoading ? (
-              <Loading />
+      <div className="container">
+        {isLoading ? (<Loading />) : (
+
+        data?.map((post) => (
+          <Link to={`/posts/${post.title}`} style={{ textDecoration: "none" }}>
+            <div className="row card my-3 border-1 ">
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <h5>{post.title}</h5>
+                  
+                
+                <div className="d-flex align-items-center">
+                  {post.users.length}
+                    <FiUsers className="m1-auto"/>
+                </div>
+              </div>
             
-            ) : (
-              postList.map((post) => (
-                <ListGroup.Item 
-                key={post.id}
-                action href={`/posts/${post.title}` } 
-                variant='dark'
-                className="text-center mb-1">
-                    {post.title}
-                </ListGroup.Item>
-            )
-            )  
-            )}
-        </ListGroup>
-      </Container>
+              <div className="card-body">
+                {post.description ? post.description : "There is no description."}
+              
+              </div>
+            </div>
+            </Link>
+        ))
+      )}
+  </div>
+
+
     );
 }
 

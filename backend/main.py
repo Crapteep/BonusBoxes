@@ -6,6 +6,7 @@ from settings import ORIGINS
 
 import uuid
 import aiofiles
+import os
 
 from model import Post, User
 from database import (
@@ -52,7 +53,7 @@ async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3))
         raise HTTPException(400, "Bad request")
 
     new_user = User(name=q)
-    boxes_name = []
+
     for i, file in enumerate(files):
         file.name = f"{uuid.uuid4()}.jpg"
         async with aiofiles.open(f"static/{file.name}", "wb") as f:
@@ -75,12 +76,21 @@ async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3))
         user_exists = False
         for user in existing_post_users:
             if user["name"] == new_user.name:
-                user["box"] = new_user.box
-                user["mbox"] = new_user.mbox
-                user["gbox"] = new_user.gbox
+                if user["box"]:
+                    os.remove(f"static/{user['box']}")
+                    user["box"] = new_user.box
+
+                if user["mbox"]:
+                    os.remove(f"static/{user['mbox']}")
+                    user["mbox"] = new_user.mbox
+
+                if user["gbox"]:
+                    os.remove(f"static/{user['gbox']}")
+                    user["gbox"] = new_user.gbox
+                
                 user_exists = True
                 break
-        #zrobić usuwanie starych zdjęć, gdy zostanie zrobiony update
+
         if not user_exists:
             existing_post_users.append(new_user.dict())
 

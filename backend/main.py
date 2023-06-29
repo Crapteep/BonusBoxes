@@ -34,7 +34,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/posts")
 async def get_all_posts():
     response = await fetch_all_posts()
-    return response
+    if response:
+        return response
 
 
 @app.get("/posts/{id}", response_model=Post)
@@ -52,25 +53,39 @@ async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3))
 
     new_user = User(name=q)
     boxes_name = []
-    for file in files:
+    for i, file in enumerate(files):
         file.name = f"{uuid.uuid4()}.jpg"
-        # user.images.append(image)
         async with aiofiles.open(f"static/{file.name}", "wb") as f:
             while content := await file.read(1024):
                 await f.write(content)
 
-        boxes_name.append(file.name)
+        if i == 0:
+            new_user.box = file.name
+        elif i == 1:
+            new_user.mbox = file.name
+        elif i == 2:
+            new_user.gbox = file.name
 
-    new_user.box = boxes_name[0]
-    new_user.mbox = boxes_name[1]
-    new_user.gbox = boxes_name[2]
 
     existing_post = await check_posts_today()
 
     if existing_post:
         existing_post_users = existing_post["users"]
-        existing_post_users.append(new_user.dict())
+
+        user_exists = False
+        for user in existing_post_users:
+            if user["name"] == new_user.name:
+                user["box"] = new_user.box
+                user["mbox"] = new_user.mbox
+                user["gbox"] = new_user.gbox
+                user_exists = True
+                break
+        #zrobić usuwanie starych zdjęć, gdy zostanie zrobiony update
+        if not user_exists:
+            existing_post_users.append(new_user.dict())
+
         await update_post_users(existing_post["_id"], existing_post_users)
+
 
     else:
         new_post = Post(title=f"Post for {date.today()}", users=[new_user])

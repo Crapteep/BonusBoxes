@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import Annotated
 from datetime import datetime
 
 
@@ -14,4 +13,8 @@ class Post(BaseModel):
     title: str = Field(default=None, max_length=200)
     description: str | None = None
     users: list[User]
-    created_at: datetime = datetime.now()
+    created_at: datetime | None = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.created_at = datetime.now()

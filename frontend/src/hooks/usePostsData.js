@@ -9,9 +9,11 @@ const usePostsData = () => {
         )
         return data
         },
-        refetchOnWindowFocus: 'true'
-        
+        refetchIntervalInBackground: true,
+        refetchOnWindowFocus: true,
+
     })
 }
 
 export default usePostsData;
+

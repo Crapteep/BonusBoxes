@@ -3,16 +3,30 @@ import Loading from "../components/Loading";
 import { Link } from "react-router-dom";
 import { FiUsers } from 'react-icons/fi';
 import usePostsData from '../hooks/usePostsData'
+import { useEffect } from "react";
 
 
 const Home = () => {
 
-    const { isLoading, data } = usePostsData()
+    const { isLoading, data, refetch } = usePostsData()
+
+    useEffect(() => {
+      refetch();
+      console.log('refetch')
+    }, []);
+    
+    if (isLoading) {
+      return (
+        <div className="container">
+          <Loading />
+        </div>
+      )
+    }
 
     return (
 
       <div className="container">
-        {isLoading ? (<Loading />) : (
+        {
 
         data?.map((post) => (
           <Link to={`/posts/${post.title}`} style={{ textDecoration: "none" }}>
@@ -30,11 +44,12 @@ const Home = () => {
               <div className="card-body">
                 {post.description ? post.description : "There is no description."}
               
+
               </div>
             </div>
             </Link>
         ))
-      )}
+      }
   </div>
 
 

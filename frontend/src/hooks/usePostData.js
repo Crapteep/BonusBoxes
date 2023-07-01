@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 
 const usePostData = () => {
     const { id } = useParams();
-    
+
     return useQuery({
         queryFn: async () => {
             const { data } = await axios.get(
@@ -15,6 +15,8 @@ const usePostData = () => {
         return data
         },
         refetchIntervalInBackground: 'true',
+        refetchOnWindowFocus: 'true',
+        
     })
 }
 

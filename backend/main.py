@@ -2,8 +2,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from datetime import date
-from settings import ORIGINS
-
+from config import get_settings
 import uuid
 import aiofiles
 import os
@@ -18,11 +17,19 @@ from database import (
     find_user_by_name,
 )
 
+
+settings = get_settings()
 app = FastAPI()
+
+
+origins = [
+    'http://localhost:3000',
+    'http://localhost:8000'
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ORIGINS,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,6 +38,12 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+@app.get("/test")
+async def test():
+    settings = get_settings()
+    print(settings)
+    return settings
 
 @app.get("/posts")
 async def get_all_posts():

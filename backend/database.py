@@ -1,13 +1,14 @@
 import motor.motor_asyncio
 from model import Post
 from datetime import datetime, time
-from settings import LOCAL_DB, SERVER_DB
+from config import get_settings
+import os
+
+settings = get_settings()
 
 
-client = motor.motor_asyncio.AsyncIOMotorClient(LOCAL_DB)
-
+client = motor.motor_asyncio.AsyncIOMotorClient(settings.db_url)
 database = client.BonusBoxes
-
 posts_collection = database.posts
 
 

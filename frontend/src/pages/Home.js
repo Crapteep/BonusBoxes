@@ -34,6 +34,7 @@ const Home = () => {
                   {post.users.length}
                     <FiUsers className="m1-auto"/>
                 </div>
+                
               </div>
             
               <div className="card-body">

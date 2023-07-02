@@ -20,9 +20,9 @@ function App() {
     <div className='container'>
       <Routes>
           <Route path='/' element={<Home/>} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
-          <Route path='/posts/:id' element={<PostInfo/>} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="about" element={<About />} />
+          <Route path='posts/:id' element={<PostInfo/>} />
           <Route path="*" element={<NoPage />} />
       </Routes>
       

@@ -3,17 +3,12 @@ import Loading from "../components/Loading";
 import { Link } from "react-router-dom";
 import { FiUsers } from 'react-icons/fi';
 import usePostsData from '../hooks/usePostsData'
-import { useEffect } from "react";
+
 
 
 const Home = () => {
 
-    const { isLoading, data, refetch } = usePostsData()
-
-    useEffect(() => {
-      refetch();
-      console.log('refetch')
-    }, []);
+    const { isLoading, data } = usePostsData()
     
     if (isLoading) {
       return (

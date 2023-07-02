@@ -24,7 +24,8 @@ app = FastAPI()
 
 origins = [
     'http://localhost:3000',
-    'http://localhost:8000'
+    'http://localhost:8000',
+    'https://bonus-boxes.netlify.app/'
 ]
 
 app.add_middleware(

@@ -16,9 +16,11 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
 
     env_name = os.getenv("ENV_NAME", "").lower()
+    db_url = os.getenv("DB_URL", "")
 
     if env_name == "production":
         Settings.Config.env_file = ".env.production"
+        Settings.db_url = db_url
 
     settings = Settings()
     print(f"Loading settings for: {settings.env_name}")

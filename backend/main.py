@@ -40,12 +40,6 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/test")
-async def test():
-    settings = get_settings()
-    print(settings)
-    return settings
-
 @app.get("/posts")
 async def get_all_posts():
     response = await fetch_all_posts()

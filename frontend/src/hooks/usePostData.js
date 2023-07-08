@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 const URL = process.env.REACT_APP_API_URL
 
 const usePostData = () => {
+    const makePostKey = id => ['post', id];
     const { id } = useParams();
 
     return useQuery({
@@ -15,8 +16,10 @@ const usePostData = () => {
             )
         return data
         },
-        refetchIntervalInBackground: 'true',
-        refetchOnWindowFocus: 'true',
+
+        queryKey: makePostKey(id),
+        refetchIntervalInBackground: true,
+        refetchOnWindowFocus: true,
         
     })
 }

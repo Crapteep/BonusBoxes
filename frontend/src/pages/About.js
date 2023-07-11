@@ -1,6 +1,7 @@
 import React from "react";
 
 const About = () => {
+  document.title = "BonusBoxes - About"
   return <h1>This is About page</h1>;
 };
 

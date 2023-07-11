@@ -43,7 +43,7 @@ const PostInfo = () => {
         </div>
       ))}
 
-      <div style={{ "margin-bottom": "80px" }}></div>
+      <div style={{ "marginBottom": "80px" }}></div>
     </div>
   );
 };

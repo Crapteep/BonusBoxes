@@ -3,10 +3,11 @@ import Loading from "../components/Loading";
 import { Link } from "react-router-dom";
 import { FiUsers } from "react-icons/fi";
 import usePostsData from "../hooks/usePostsData";
+// import AvailabilityStatus from "../components/AvailabilityStatus/AvailabilityStatus";
 
 const Home = () => {
   const { isLoading, data } = usePostsData();
-
+  document.title = "BonusBoxes - Home"
   if (isLoading) {
     return (
       <div className="container">
@@ -17,12 +18,26 @@ const Home = () => {
 
   return (
     <div className="container">
-      {data?.map((post) => (
-        <Link to={`/posts/${post.title}`} style={{ textDecoration: "none" }}>
-          <div className="row card my-3 border-1 ">
+      {data?.map((post, index) => (
+        <Link to={`/posts/${post.title}`} style={{ textDecoration: "none" }} key={index}>
+          <div className="row card my-3 border-1">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h5>{post.title}</h5>
-
+              <div className="d-flex align-items-center">
+                <h5>{post.title}</h5>
+                {post.expired && (
+                  <p
+                    className="text-red-700 text-sm my-2"
+                    style={{
+                      textAlign: "right",
+                      color: "red",
+                      fontSize: "0.7rem",
+                      marginLeft: "10px",
+                    }}
+                  >
+                    Expired!
+                  </p>
+                )}
+              </div>
               <div className="d-flex align-items-center">
                 {post.users.length}
                 <FiUsers className="m1-auto" />
@@ -35,7 +50,7 @@ const Home = () => {
           </div>
         </Link>
       ))}
-      <div style={{ "margin-bottom": "80px" }}></div>
+      <div style={{ marginBottom: "80px" }}></div>
     </div>
   );
 };

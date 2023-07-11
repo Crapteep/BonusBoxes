@@ -7,7 +7,7 @@ import uuid
 import aiofiles
 import os
 
-from model import Post, User, Account, DeleteAccount, DeleteAccounts
+from model import Post, User, Account, DeleteAccount, DeleteAccounts, AccountBasicInfo, AccountsBasicInfo
 from database import (
     fetch_all_posts,
     fetch_one_post,
@@ -23,7 +23,8 @@ from database import (
     fetch_accounts_with_data,
     fetch_documents_older_than_one_day,
     delete_account_by_email,
-    delete_many_accounts
+    delete_many_accounts,
+    fetch_many_accounts_info
 )
 
 from functions import encrypt_password, pwd_context
@@ -192,3 +193,20 @@ async def delete_accounts(accounts: DeleteAccounts):
         return accounts
     raise HTTPException(404, f"No accounts found with the provided emails")
 
+
+@app.get("/accounts/{account_id}/info", response_model=AccountBasicInfo)
+async def get_account_info(account_id):
+    response = await check_did_account_exists_by_accountID(account_id)
+    if response:
+        return AccountBasicInfo(account_id=account_id, username=response["username"])
+    raise HTTPException(404, detail=f"There is no account with this ID {account_id}")
+
+
+@app.put("/accounts/info", response_model=AccountsBasicInfo)
+async def get_accounts_info(accounts: list[str]):
+    response = await fetch_many_accounts_info(accounts)
+    info = []
+    for account in response:
+        account_info = AccountBasicInfo(id=str(account['_id']), username=account['username'])
+        info.append(account_info)
+    return AccountsBasicInfo(info=info)

@@ -7,15 +7,26 @@ import uuid
 import aiofiles
 import os
 
-from model import Post, User
+from model import Post, User, Account, DeleteAccount, DeleteAccounts
 from database import (
     fetch_all_posts,
     fetch_one_post,
     check_posts_today,
     create_post,
     update_post_users,
-    find_user_by_name,
+    insert_new_account,
+    check_did_account_exists_by_email,
+    check_did_account_exists_by_accountID,
+    update_account,
+    fetch_username_from_all_accounts,
+    fetch_hashed_password,
+    fetch_accounts_with_data,
+    fetch_documents_older_than_one_day,
+    delete_account_by_email,
+    delete_many_accounts
 )
+
+from functions import encrypt_password, pwd_context
 
 
 settings = get_settings()
@@ -46,6 +57,7 @@ async def get_all_posts():
     response = await fetch_all_posts()
     if response:
         return response
+    return {"message": "There are no posts here."}
 
 
 @app.get("/posts/{id}", response_model=Post)
@@ -56,15 +68,20 @@ async def get_post_by_id(id):
     raise HTTPException(404, f"There is no post with this ID {id}")
 
 
-@app.post('/upload_user')
-async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3)):
+@app.post('/posts/account/{account_id}')
+async def add_data_for_new_day(account_id: str, files: list[UploadFile] = File(..., length=3)):
+    if not await check_did_account_exists_by_accountID(account_id):
+        raise HTTPException(
+            404, detail=f"There is no account with this ID {account_id}")
+
     if len(files) != 3:
         raise HTTPException(400, "Bad request")
 
-    new_user = User(name=q)
+    new_user = User(user_id=account_id)
 
     for i, file in enumerate(files):
         file.name = f"{uuid.uuid4()}.jpg"
+
         async with aiofiles.open(f"static/{file.name}", "wb") as f:
             while content := await file.read(1024):
                 await f.write(content)
@@ -76,7 +93,6 @@ async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3))
         elif i == 2:
             new_user.gbox = file.name
 
-
     existing_post = await check_posts_today()
 
     if existing_post:
@@ -84,7 +100,7 @@ async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3))
 
         user_exists = False
         for user in existing_post_users:
-            if user["name"] == new_user.name:
+            if user["user_id"] == new_user.user_id:
                 if user["box"]:
                     os.remove(f"static/{user['box']}")
                     user["box"] = new_user.box
@@ -96,36 +112,83 @@ async def upload_new_user(q: str, files: list[UploadFile] = File(..., length=3))
                 if user["gbox"]:
                     os.remove(f"static/{user['gbox']}")
                     user["gbox"] = new_user.gbox
-                
+
                 user_exists = True
                 break
 
         if not user_exists:
-            existing_post_users.append(new_user.dict())
+            existing_post_users.insert(0, new_user.dict())
 
         await update_post_users(existing_post["_id"], existing_post_users)
-
 
     else:
         new_post = Post(title=f"Post for {date.today()}", users=[new_user])
         await create_post(new_post.dict())
-    return True
+
+    await update_account(account_id)
+    return {"message": "New data added!"}
 
 
-@app.get('/user/images/{username}')
-async def get_user_images(username: str):
-    try:
-        user_data = await find_user_by_name(username)
+@app.post('/accounts/add-new')
+async def add_new_account(account: Account):
+    acc_exists = await check_did_account_exists_by_email(account.email)
+    if acc_exists:
+        raise HTTPException(status_code=409, detail="Account already exist!")
 
-        if user_data:
-            users = user_data.get('users', [])
+    encrypted_password = encrypt_password(account.password)
+    account_dict = account.dict()
+    account_dict["password"] = encrypted_password
+    if account.username == None or account.username == "":
+        account_dict["username"] = account.email.split('@')[0]
 
-            image_names = []
-            for user in users:
-                if user['name'] == username:
-                    image_names.extend(list(user.values())[1:])
-            return {'images': image_names}
-        raise HTTPException(status_code=404, detail='User not found')
+    await insert_new_account(account_dict)
+    return {"message": "Account has been successfully added!"}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/accounts")
+async def get_all_accounts():
+    response = await fetch_username_from_all_accounts()
+    if response:
+        return response
+    return {"message": "There are no accounts here."}
+
+
+@app.get("/accounts/data")
+async def get_all_accounts_with_data(password: str):
+    hashed_password = await fetch_hashed_password()
+    if hashed_password and pwd_context.verify(password, hashed_password):
+        response = await fetch_accounts_with_data()
+        if response:
+            return response
+        else:
+            return {"message": "There are no accounts here."}
+    else:
+        raise HTTPException(status_code=401, detail="Incorrect password!")
+
+
+@app.get("/accounts/ready")
+async def get_ready_accounts(password: str):
+    hashed_password = await fetch_hashed_password()
+    if hashed_password and pwd_context.verify(password, hashed_password):
+        response = await fetch_documents_older_than_one_day()
+        if response:
+            return response
+        else:
+            return {"message": "There are no accounts here."}
+    else:
+        raise HTTPException(status_code=401, detail="Incorrect password!")
+
+
+@app.delete("/accounts/delete/{email}", response_model=DeleteAccount)
+async def delete_account(email):
+    response = await delete_account_by_email(email)
+    return response
+
+
+@app.delete("/accounts/delete", response_model=DeleteAccounts)
+async def delete_accounts(accounts: DeleteAccounts):
+    response = await delete_many_accounts(accounts)
+    if response.deleted_count > 0:
+        return accounts
+    raise HTTPException(404, f"No accounts found with the provided emails")
+

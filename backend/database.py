@@ -140,3 +140,10 @@ async def delete_account_by_email(email):
 async def delete_many_accounts(accounts):
     result = await accounts_collection.delete_many({"email": {"$in": accounts.emails}})
     return result
+
+
+async def fetch_many_accounts_info(accounts):
+    accounts = list(map(ObjectId, accounts))
+    cursor = accounts_collection.find({"_id": {"$in": accounts}}, {"username": 1, "_id": 1})
+    result = await cursor.to_list(length=None)
+    return result

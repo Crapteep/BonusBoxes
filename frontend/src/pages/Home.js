@@ -16,6 +16,14 @@ const Home = () => {
     );
   }
 
+  if (!data || data.length === 0) {
+    return (
+    <div className="container my-5 d-flex justify-content-center align-items-center">
+    <p>There are no available posts.</p>
+    </div>
+    );
+    }
+
   return (
     <div className="container">
       {data?.map((post, index) => (

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
+from bson import ObjectId
 
 
 class User(BaseModel):
@@ -27,6 +28,15 @@ class Account(BaseModel):
     username: str | None = None
     password: str
     last_update: datetime | None = None
+
+
+class AccountBasicInfo(BaseModel):
+    id: str
+    username: str
+
+
+class AccountsBasicInfo(BaseModel):
+    info: list[AccountBasicInfo]
 
 
 class DeleteAccount(BaseModel):

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import axios from "axios";
+
 import {
   TextField,
   Button,
@@ -12,6 +13,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import "./AddAccount.css";
+import useUsernamesData from "../../hooks/useUsernamesData";
 
 function AddAccount() {
   const URL = process.env.REACT_APP_API_URL;
@@ -24,20 +26,9 @@ function AddAccount() {
 
   const [emailError, setEmailError] = useState(false);
   const [usernameError, setUsernameError] = useState(false);
-  const [allUsernames, setAllUsernames] = useState([]);
   const [emailDisplayError, setEmailDisplayError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-
-  const fetchAllUsernames = useCallback(() => {
-    axios.get(`${URL}/accounts`).then((response) => {
-      const usernames = response.data;
-      setAllUsernames(usernames);
-    });
-  }, [URL]);
-
-  useEffect(() => {
-    fetchAllUsernames();
-  }, [fetchAllUsernames]);
+  const { data: allUsernames } = useUsernamesData();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,7 +129,7 @@ function AddAccount() {
               required
               variant="outlined"
               error={emailError}
-              helperText={emailError ? "Nieprawidłowy email" : ""}
+              helperText={emailError ? "Incorrect email" : ""}
               className="form-field"
             />
           </Grid>
@@ -153,7 +144,7 @@ function AddAccount() {
               required
               variant="outlined"
               error={usernameError}
-              helperText={usernameError ? "Nazwa użytkownika już istnieje" : ""}
+              helperText={usernameError ? "Username already exists" : ""}
               className="form-field"
               InputProps={{
                 readOnly: false,

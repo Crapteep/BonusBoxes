@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Routes, Route } from "react-router-dom";
 import Home from './pages/Home';
 import NoPage from './pages/NoPage';
-import About from './pages/About/About';
+import About from './pages/About';
 import MyNavbar from './components/Navbar';
 import PostInfo from './pages/PostInfo/PostInfo';
 import Footer from './components/Footer';

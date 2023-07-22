@@ -16,6 +16,7 @@ from database import (
     update_post_users,
     insert_new_account,
     check_did_account_exists_by_email,
+    check_did_account_exists_by_username,
     check_did_account_exists_by_accountID,
     update_account,
     fetch_username_from_all_accounts,
@@ -24,7 +25,7 @@ from database import (
     fetch_documents_older_than_one_day,
     delete_account_by_email,
     delete_many_accounts,
-    fetch_many_accounts_info
+    fetch_many_accounts_info,
 )
 
 from functions import encrypt_password, pwd_context
@@ -132,9 +133,13 @@ async def add_data_for_new_day(account_id: str, files: list[UploadFile] = File(.
 
 @app.post('/accounts/add-new')
 async def add_new_account(account: Account):
-    acc_exists = await check_did_account_exists_by_email(account.email)
-    if acc_exists:
-        raise HTTPException(status_code=409, detail="Account already exist!")
+    email_exists = await check_did_account_exists_by_email(account.email)
+    if email_exists:
+        raise HTTPException(status_code=409, detail="Account with this email already exist!")
+    
+    username_exists = await check_did_account_exists_by_username(account.username)
+    if username_exists:
+        raise HTTPException(status_code=409, detail="Account with this username already exist!")
 
     encrypted_password = encrypt_password(account.password)
     account_dict = account.dict()

@@ -27,16 +27,12 @@ class Account(BaseModel):
     email: EmailStr
     username: str | None = None
     password: str
-    last_update: datetime | None = None
+    last_update: datetime = datetime.now()
 
 
 class AccountBasicInfo(BaseModel):
     id: str
     username: str
-
-
-class AccountsBasicInfo(BaseModel):
-    info: list[AccountBasicInfo]
 
 
 class DeleteAccount(BaseModel):

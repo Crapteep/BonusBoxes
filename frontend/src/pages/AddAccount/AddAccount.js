@@ -50,17 +50,9 @@ function AddAccount() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!emailError && !usernameError) {
-      let finalUsername = formData.username;
-      let counter = 1;
-      while (allUsernames.includes(finalUsername)) {
-        finalUsername = formData.username + counter;
-        counter++;
-      }
-
       axios
         .post(`${URL}/accounts/add-new`, {
           ...formData,
-          username: finalUsername,
         })
         .then((response) => {
           setOpenDialog(true);
@@ -68,9 +60,7 @@ function AddAccount() {
         })
         .catch((error) => {
           if (error.response && error.response.status === 409) {
-            setEmailDisplayError(
-              "The email address is already taken. Select another email address."
-            );
+            setEmailDisplayError(error.response.data.detail);
           }
           if (error.response && error.response.status === 422) {
             setEmailDisplayError("Please enter the correct email.");

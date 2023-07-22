@@ -7,7 +7,7 @@ import uuid
 import aiofiles
 import os
 
-from model import Post, User, Account, DeleteAccount, DeleteAccounts, AccountBasicInfo, AccountsBasicInfo
+from model import Post, User, Account, DeleteAccount, DeleteAccounts, AccountBasicInfo
 from database import (
     fetch_all_posts,
     fetch_one_post,
@@ -139,9 +139,6 @@ async def add_new_account(account: Account):
     encrypted_password = encrypt_password(account.password)
     account_dict = account.dict()
     account_dict["password"] = encrypted_password
-    if account.username == None or account.username == "":
-        account_dict["username"] = account.email.split('@')[0]
-
     await insert_new_account(account_dict)
     return {"message": "Account has been successfully added!"}
 
@@ -183,14 +180,14 @@ async def get_ready_accounts(password: str):
 @app.delete("/accounts/delete/{email}", response_model=DeleteAccount)
 async def delete_account(email):
     response = await delete_account_by_email(email)
-    return response
+    return {"message": "The account has been deleted"}
 
 
 @app.delete("/accounts/delete", response_model=DeleteAccounts)
 async def delete_accounts(accounts: DeleteAccounts):
     response = await delete_many_accounts(accounts)
     if response.deleted_count > 0:
-        return accounts
+        return {"message": "Accounts have been deleted"}
     raise HTTPException(404, f"No accounts found with the provided emails")
 
 
@@ -198,15 +195,16 @@ async def delete_accounts(accounts: DeleteAccounts):
 async def get_account_info(account_id):
     response = await check_did_account_exists_by_accountID(account_id)
     if response:
-        return AccountBasicInfo(account_id=account_id, username=response["username"])
+        return AccountBasicInfo(id=account_id, username=response["username"])
     raise HTTPException(404, detail=f"There is no account with this ID {account_id}")
 
 
-@app.put("/accounts/info", response_model=AccountsBasicInfo)
+#poprawic gdy wpiszemy cos innego niz ID konta - wywala błąd 500
+@app.put("/accounts/info")
 async def get_accounts_info(accounts: list[str]):
     response = await fetch_many_accounts_info(accounts)
     info = []
     for account in response:
         account_info = AccountBasicInfo(id=str(account['_id']), username=account['username'])
         info.append(account_info)
-    return AccountsBasicInfo(info=info)
+    return info

@@ -15,6 +15,8 @@ import {
 import "./AddAccount.css";
 import useUsernamesData from "../../hooks/useUsernamesData";
 
+import { BsFillPersonCheckFill } from "react-icons/bs";
+
 function AddAccount() {
   const URL = process.env.REACT_APP_API_URL;
 
@@ -177,10 +179,13 @@ function AddAccount() {
 
       {/* Success Dialog */}
       <Dialog open={openDialog} onClose={handleDialogClose}>
-        <DialogTitle>Success</DialogTitle>
+        <DialogTitle className>
+          Success
+        <BsFillPersonCheckFill icon="fa-solid fa-check" className="ms-2" />
+        </DialogTitle>
         <DialogContent>
           <Typography variant="body1">
-            Konto zostało pomyślnie dodane.
+          The account has been successfully added!
           </Typography>
         </DialogContent>
         <DialogActions>

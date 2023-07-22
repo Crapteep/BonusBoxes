@@ -69,6 +69,10 @@ async def check_did_account_exists_by_email(email):
     document = await accounts_collection.find_one({"email": email})
     return document
 
+async def check_did_account_exists_by_username(username):
+    document = await accounts_collection.find_one({"username": username})
+    return document
+
 
 async def insert_new_account(account):
     document = account

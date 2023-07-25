@@ -27,7 +27,11 @@ class Account(BaseModel):
     email: EmailStr
     username: str | None = None
     password: str
-    last_update: datetime = datetime.now()
+    last_update: datetime | None = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.last_update = datetime.now()
 
 
 class AccountBasicInfo(BaseModel):

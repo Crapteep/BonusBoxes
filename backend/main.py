@@ -6,9 +6,14 @@ from config import get_settings
 import uuid
 import aiofiles
 import os
+import datetime
+import asyncio
 
-from model import Post, User, Account, DeleteAccount, DeleteAccounts, AccountBasicInfo
+
+
+from model import Post, User, Account, DeleteAccount, DeleteAccounts, AccountBasicInfo, DiscountType, Item
 from database import (
+    fetch_all_items,
     fetch_all_posts,
     fetch_one_post,
     check_posts_today,
@@ -26,9 +31,12 @@ from database import (
     delete_account_by_email,
     delete_many_accounts,
     fetch_many_accounts_info,
+    append_item,
+    delete_item
 )
 
-from functions import encrypt_password, pwd_context
+
+from functions import encrypt_password, pwd_context, check_item_expired, delete_image
 
 
 settings = get_settings()
@@ -53,6 +61,29 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(check_items_periodically())
+    asyncio.create_task(check_items_to_delete())
+
+async def check_items_periodically():
+    while True:
+        await asyncio.sleep(10)
+        await check_item_expired()
+
+async def check_items_to_delete():
+    while True:
+        await asyncio.sleep(3600)
+        items = await fetch_all_items()
+        current_time = datetime.datetime.now()
+
+        for item in items:
+            created_at = datetime.datetime.strptime(item["created_at"], '%Y-%m-%d %H:%M:%S.%f')
+            if (current_time - created_at).days > 3:
+                item_deleted = await delete_item(item["_id"])
+                if item_deleted:
+                    await delete_image(item["image"])
+
 
 @app.get("/posts")
 async def get_all_posts():
@@ -60,6 +91,45 @@ async def get_all_posts():
     if response:
         return response
     return {"message": "There are no posts here."}
+
+
+@app.get("/items")
+async def get_all_items():
+    response = await fetch_all_items()
+    if response:
+        return response
+    return {"message": "There are no items here."}
+
+
+@app.post('/items/new-item')
+async def add_new_item(account_id: str, disc_type: str, image: UploadFile = File(...)):
+    user = await check_did_account_exists_by_accountID(account_id)
+    if not user:
+        raise HTTPException(
+            404, detail=f"There is no account with this ID {account_id}")
+
+    if disc_type not in DiscountType._value2member_map_:
+        raise HTTPException(400, detail="Invalid disc_type. Must be 'unique' or 'legendary'.")
+
+    file_extension = image.filename.split(".")[-1]
+    image_name = f"{uuid.uuid4()}.{file_extension}"
+
+    
+    new_item = Item(name=user["username"], disc_type=disc_type, image=image_name)
+    
+    response = await append_item(new_item.dict())
+    if response:
+        async with aiofiles.open(f"static/{image_name}", "wb") as f:
+            while content := await image.read(1024):
+                await f.write(content)
+
+
+
+
+
+
+
+
 
 
 @app.get("/posts/{id}", response_model=Post)
@@ -204,7 +274,6 @@ async def get_account_info(account_id):
     raise HTTPException(404, detail=f"There is no account with this ID {account_id}")
 
 
-#poprawic gdy wpiszemy cos innego niz ID konta - wywala błąd 500
 @app.put("/accounts/info")
 async def get_accounts_info(accounts: list[str]):
     response = await fetch_many_accounts_info(accounts)
@@ -213,3 +282,4 @@ async def get_accounts_info(accounts: list[str]):
         account_info = AccountBasicInfo(id=str(account['_id']), username=account['username'])
         info.append(account_info)
     return info
+

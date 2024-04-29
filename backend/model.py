@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 from bson import ObjectId
+from enum import Enum
+from typing import Optional, Union, Literal
 
 
 class User(BaseModel):
@@ -21,6 +23,19 @@ class Post(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
         self.created_at = datetime.now()
+
+
+
+class DiscountType(Enum):
+    unique = "unique"
+    legendary = "legendary"
+
+class Item(BaseModel):
+    name: str
+    image: str
+    disc_type: Union[Literal["unique", "legendary"], str]
+    created_at: datetime = Field(default_factory=datetime.now)
+    expired: bool = False
 
 
 class Account(BaseModel):

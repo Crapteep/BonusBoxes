@@ -23,7 +23,7 @@ function App() {
           <Route path="add-account" element={<AddAccount />} />
           <Route path="about" element={<About />} />
           <Route path='posts/:id' element={<PostInfo/>} />
-          <Route path="*" element={<NoPage />} />
+          <Route path="/*" element={<NoPage />} />
       </Routes>
       
       

@@ -68,12 +68,14 @@ async def startup_event():
 
 async def check_items_periodically():
     while True:
+        print('sprawdzam wygasniete')
         await asyncio.sleep(10)
         await check_item_expired()
 
 async def check_items_to_delete():
     while True:
-        await asyncio.sleep(3600)
+        await asyncio.sleep(10)
+        print('sprawdzam do usuniecia')
         items = await fetch_all_items()
         current_time = datetime.datetime.now()
 

@@ -40,8 +40,8 @@ async def append_item(item):
     return result
 
 
-async def update_item(item: dict):
-    await items_collection.update_one({"_id": item["_id"]}, {"$set": {"expired": True}})
+async def update_item_expired(item_id: dict):
+    await items_collection.update_one({"_id": ObjectId(item_id)}, {"$set": {"expired": True}})
 
 async def fetch_all_posts():
     posts = []

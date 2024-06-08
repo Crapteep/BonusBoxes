@@ -51,7 +51,8 @@ const PostCard = ({ post, currentTime }) => {
 
   const timeRemaining = formatTimeRemaining(currentTime, new Date(post.created_at));
   const isExpired = post.expired || formatTimeRemaining(currentTime, new Date(post.created_at)) === 'Expired!';
-  const isAlmostExpired = timeRemaining.startsWith('0');
+  const hours = parseInt(timeRemaining.split(':')[0], 10);
+  const isAlmostExpired = hours < 6;
   
 
   return (
@@ -142,7 +143,7 @@ const Home = () => {
 };
 
 const formatTimeRemaining = (currentTime, createdAt) => {
-  const diffInMs = new Date(createdAt).getTime() + 24 * 60 * 60 * 1000 - currentTime.getTime();
+  const diffInMs = new Date(createdAt).getTime() + 12 * 60 * 60 * 1000 - currentTime.getTime();
 
   if (diffInMs <= 0) {
     return 'Expired!';

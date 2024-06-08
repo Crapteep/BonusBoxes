@@ -37,7 +37,7 @@ from database import (
     delete_item,
     set_all_documents_ready,
     set_document_ready,
-    get_ready_accounts
+    fetch_ready_accounts
 )
 
 
@@ -275,7 +275,7 @@ async def get_all_accounts_with_data(password: str):
 async def get_ready_accounts(password: str):
     hashed_password = await fetch_hashed_password()
     if hashed_password and pwd_context.verify(password, hashed_password):
-        response = await get_ready_accounts()
+        response = await fetch_ready_accounts()
         if response:
             return response
         else:

@@ -129,7 +129,7 @@ async def fetch_accounts_with_data():
     return accounts
 
 
-async def get_ready_accounts():
+async def fetch_ready_accounts():
     cursor = accounts_collection.find({"ready": True})
     result = await cursor.to_list(None)
     return result

@@ -43,6 +43,7 @@ class Account(BaseModel):
     username: str | None = None
     password: str
     last_update: datetime | None = None
+    ready: bool = True
 
     def __init__(self, **data):
         super().__init__(**data)

@@ -8,6 +8,8 @@ import aiofiles
 import os
 import datetime
 import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 
 
@@ -32,7 +34,9 @@ from database import (
     delete_many_accounts,
     fetch_many_accounts_info,
     append_item,
-    delete_item
+    delete_item,
+    set_all_documents_ready,
+    set_document_ready
 )
 
 
@@ -61,21 +65,37 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+scheduler = AsyncIOScheduler()
+trigger = CronTrigger(hour=0, minute=0)
+
+async def scheduled_job():
+    await set_all_documents_ready()
+
+scheduler.add_job(scheduled_job, trigger, id="update_job")
+
+
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(check_items_periodically())
     asyncio.create_task(check_items_to_delete())
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    scheduler.remove_job("update_job")
+    scheduler.shutdown()
+
+
 
 async def check_items_periodically():
     while True:
-        print('sprawdzam wygasniete')
-        await asyncio.sleep(10)
+        await asyncio.sleep(60)
         await check_item_expired()
 
 async def check_items_to_delete():
     while True:
-        await asyncio.sleep(10)
-        print('sprawdzam do usuniecia')
+        await asyncio.sleep(60)
         items = await fetch_all_items()
         current_time = datetime.datetime.now()
 
@@ -124,14 +144,23 @@ async def add_new_item(account_id: str, disc_type: str, image: UploadFile = File
         async with aiofiles.open(f"static/{image_name}", "wb") as f:
             while content := await image.read(1024):
                 await f.write(content)
+    
+        await set_document_ready(account_id, False)
+        return {"message": "Successfully added a new item"}
+    return {"message": f"There were problems with adding a new item: {new_item}"}
 
 
-
-
-
-
-
-
+@app.post('/accounts/{account_id}')
+async def change_ready_status(account_id: str, status: bool):
+    user = await check_did_account_exists_by_accountID(account_id)
+    if not user:
+        raise HTTPException(
+            404, detail=f"There is no account with this ID {account_id}")
+    
+    response = await set_document_ready(account_id, status)
+    if response:
+        return {"message": f"Changed 'ready' status to {status}"}
+    return {"message": f"There were problem with updating status"}
 
 
 @app.get("/posts/{id}", response_model=Post)
@@ -245,7 +274,7 @@ async def get_all_accounts_with_data(password: str):
 async def get_ready_accounts(password: str):
     hashed_password = await fetch_hashed_password()
     if hashed_password and pwd_context.verify(password, hashed_password):
-        response = await fetch_documents_older_than_one_day()
+        response = await get_ready_accounts()
         if response:
             return response
         else:

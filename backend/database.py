@@ -129,6 +129,29 @@ async def fetch_accounts_with_data():
     return accounts
 
 
+async def get_ready_accounts():
+    cursor = accounts_collection.find({"ready": True})
+    result = await cursor.to_list(None)
+    return result
+
+async def set_all_documents_ready():
+    try:
+        result = await accounts_collection.update_many({}, {"$set": {"ready": True}})
+        print(f"All documents updated to ready=True, matched_count={result.matched_count}, modified_count={result.modified_count}")
+        return result
+    except Exception as e:
+        print(f"Error updating documents: {e}")
+
+
+async def set_document_ready(acc_id: str, status: bool):
+    try:
+        result = await accounts_collection.update_one({"_id": ObjectId(acc_id)}, {"$set": {"ready": status}})
+        print(f"Document updated to ready={status}")
+        return result
+    except Exception as e:
+        print(f"Error updating documents: {e}")
+
+
 async def fetch_documents_older_than_one_day():
     one_day_ago = datetime.now() - timedelta(days=1)
 

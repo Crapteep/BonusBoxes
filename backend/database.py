@@ -131,10 +131,11 @@ async def fetch_accounts_with_data():
 
 async def fetch_ready_accounts():
     cursor = await accounts_collection.find({"ready": True}).to_list(None)
-    if cursor:
-        result = json.loads(json.dumps(cursor, default=str))
-        return result
-    return []
+    result = []
+    for doc in cursor:
+        doc['_id'] = str(doc['_id'])
+        result.append(doc)
+    return result
 
 async def set_all_documents_ready():
     try:

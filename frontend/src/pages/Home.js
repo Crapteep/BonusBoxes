@@ -65,9 +65,9 @@ const PostCard = ({ post, currentTime }) => {
           <Typography variant="h6">
             {post.name} 
             {post.disc_type === 'legendary' ? (
-              <Dot style={{ backgroundColor: '#0070CC' }} />
-            ) : post.disc_type === 'unique' ? (
               <Dot style={{ backgroundColor: '#6930F0' }} />
+            ) : post.disc_type === 'unique' ? (
+              <Dot style={{ backgroundColor: '#0070CC' }} />
             ) : null}
           </Typography>
         }
